@@ -15,12 +15,33 @@
   const dispatch = createEventDispatcher();
 
   // TODO: CodeMirror
+
+  const copy = (element: HTMLElement, text: string) => {
+    const click = async () => {
+      if (text)
+        try {
+          await navigator.clipboard.writeText(text);
+
+          element.dispatchEvent(new CustomEvent("svelte-copy", { detail: text }));
+        } catch (e) {
+          element.dispatchEvent(new CustomEvent("svelte-copy:error", { detail: e }));
+        }
+    };
+
+    element.addEventListener("click", click, true);
+
+    return {
+      update: (t: string) => (text = t),
+      destroy: () => element.removeEventListener("click", click, true),
+    };
+  };
 </script>
 
 <article class="module" class:is-entry={isEntry}>
   <header>
     {#if readonly}
       <input placeholder="main.js" spellcheck="false" value={name} readonly />
+      <button use:copy={contents}> Copy </button>
     {:else}
       <input placeholder="main.js" spellcheck="false" bind:value={name} />
       <button class="remove" on:click={() => dispatch("remove")}>

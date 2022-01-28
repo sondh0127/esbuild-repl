@@ -1,7 +1,8 @@
-import type { BuildOptions, Message, Plugin } from "esbuild";
+import type { BuildOptions, Loader, Message, Plugin } from "esbuild";
 import { derived, Readable, writable } from "svelte/store";
 import { isBrowser, render } from "../helpers";
-import { esbuild, time, timeEnd } from "./index";
+import { esbuild, mode, time, timeEnd } from "./index";
+import { compile, preprocess } from "svelte/compiler";
 
 export interface Module {
   name: string;
@@ -10,12 +11,35 @@ export interface Module {
 }
 
 export const modules = writable<Module[]>([
-  { name: "main.js", contents: "export let a = 1", isEntry: true },
+  {
+    name: "main.js",
+    contents: `
+import App from './App.svelte'
+
+const createApp = () => new App({
+  target: document.body,
+})
+
+export default createApp
+`,
+    isEntry: true,
+  },
+  {
+    name: "App.svelte",
+    contents: `
+<script>
+  let count = 1
+</script>
+<button on:click={() => count++}>Counter: {count} </button>
+`,
+    isEntry: true,
+  },
 ]);
 export const buildOptions = writable<BuildOptions>({
   bundle: true,
-  format: "esm",
-  splitting: true,
+  format: "iife",
+  minify: true,
+  globalName: "createApp",
 });
 
 export interface Outputs {
@@ -33,7 +57,16 @@ function stripExt(path: string) {
   return i !== -1 ? path.slice(0, i) : path;
 }
 
+export async function fetchPkg(url: string) {
+  const res = await fetch(url);
+  return {
+    url: res.url,
+    content: await res.text(),
+  };
+}
+
 function repl($modules: Module[]): Plugin {
+  const cache: Record<string, { url: string; content: string }> = {};
   return {
     name: "repl",
     setup({ onResolve, onLoad }) {
@@ -49,10 +82,37 @@ function repl($modules: Module[]): Plugin {
         return { path: args.path, external: true };
       });
 
-      onLoad({ filter: /.*/ }, (args) => {
+      onLoad({ filter: /.*/ }, async (args) => {
+        // if (args.namespace === UnpkgNamepsace) {
+        //   const baseUrl = "https://unpkg.com/";
+        //   const pathUrl = new URL(args.path, baseUrl).toString();
+        //   let value = cache[pathUrl];
+        //   if (!value) {
+        //     value = await fetchPkg(pathUrl);
+        //   }
+        //   cache[pathUrl] = value;
+        //   return {
+        //     contents: value.content,
+        //     pluginData: {
+        //       parentUrl: value.url,
+        //     },
+        //   };
+        // }
+
         const mod: Module | undefined = args.pluginData;
-        const loader = stripExt(args.path) === args.path ? "js" : "default";
-        if (mod) return { contents: mod.contents, loader };
+        const isSvelte = args.path.endsWith(".svelte");
+        if (mod) {
+          let content = mod.contents;
+          let loader: Loader = stripExt(args.path) === args.path || isSvelte ? "js" : "js";
+
+          if (isSvelte) {
+            const compiled = compile(content, {});
+            let { js, css } = compiled;
+            content = js.code;
+          }
+
+          return { contents: content, loader };
+        }
       });
     },
   };
@@ -71,11 +131,11 @@ export const outputs: Readable<Outputs> = derived(
     buildOptions.outdir = "/";
     buildOptions.write = false;
     buildOptions.allowOverwrite = true;
-
     time();
     $esbuild
       .build(buildOptions as BuildOptions & { write: false })
       .then(({ outputFiles, errors, warnings }) => {
+        console.log("[LOG] ~ file: build.ts ~ line 133 ~ outputFiles", outputFiles);
         const files = outputFiles.map(
           (file) =>
             ({

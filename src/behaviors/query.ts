@@ -59,7 +59,7 @@ const query: Readable<string> = derived(
 );
 
 query.subscribe((value) => {
-  if (value) setQuery(value);
+  // if (value) setQuery(value);
 });
 
 const { shareable, ...shared } = getQuery();

@@ -11,7 +11,7 @@ export const status = writable("Loading...");
 // essential
 export const version = writable("latest");
 export const esbuild = writable<typeof import("esbuild") | null>(null);
-export const mode = writable<"transform" | "build" | "playground">("transform");
+export const mode = writable<"transform" | "build" | "playground">("build");
 
 // other
 export const debug = writable(import.meta.env.DEV);

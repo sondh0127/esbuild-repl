@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="../dist//svelte.global.js"></script>
+</head>
+<body>
+  <script>
+    var createApp=(()=>{var s=Object.defineProperty;var d=Object.getOwnPropertyDescriptor;var f=Object.getOwnPropertyNames;var m=Object.prototype.hasOwnProperty;var _=n=>s(n,"__esModule",{value:!0});var h=(n=>typeof require!="undefined"?require:typeof Proxy!="undefined"?new Proxy(n,{get:(t,o)=>(typeof require!="undefined"?require:t)[o]}):n)(function(n){if(typeof require!="undefined")return require.apply(this,arguments);throw new Error('Dynamic require of "'+n+'" is not supported')});var $=(n,t)=>{for(var o in t)s(n,o,{get:t[o],enumerable:!0})},b=(n,t,o,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let l of f(t))!m.call(n,l)&&(o||l!=="default")&&s(n,l,{get:()=>t[l],enumerable:!(r=d(t,l))||r.enumerable});return n};var k=(n=>(t,o)=>n&&n.get(t)||(o=b(_({}),t,1),n&&n.set(t,o),o))(typeof WeakMap!="undefined"?new WeakMap:0);var q={};$(q,{default:()=>C});var e=h("svelte/internal");function x(n){let t,o,r,l,a;return{c(){t=(0,e.element)("button"),o=(0,e.text)("Counter: "),r=(0,e.text)(n[0])},m(c,i){(0,e.insert)(c,t,i),(0,e.append)(t,o),(0,e.append)(t,r),l||(a=(0,e.listen)(t,"click",n[1]),l=!0)},p(c,[i]){i&1&&(0,e.set_data)(r,c[0])},i:e.noop,o:e.noop,d(c){c&&(0,e.detach)(t),l=!1,a()}}}function g(n,t,o){let r=1;return[r,()=>o(0,r++,r)]}var p=class extends e.SvelteComponent{constructor(t){super();(0,e.init)(this,t,g,x,e.safe_not_equal,{})}},u=p;var A=()=>new u({target:document.body}),C=A;return k(q);})();
+    createApp.default()
+  </script>
+</body>
+</html>
