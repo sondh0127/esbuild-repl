@@ -2,6 +2,9 @@ import type { BuildOptions, Message, Plugin } from "esbuild";
 import { derived, Readable, writable } from "svelte/store";
 import { isBrowser, render } from "../helpers";
 import { esbuild, time, timeEnd } from "./index";
+import { pluginNodePolyfill } from "../node-polyfill";
+import { compile } from "svelte/compiler";
+import esbuildSvelte from "../esbuild-svelte";
 
 export interface Module {
   name: string;
@@ -10,12 +13,42 @@ export interface Module {
 }
 
 export const modules = writable<Module[]>([
-  { name: "main.js", contents: "export let a = 1", isEntry: true },
+  {
+    name: "main.js",
+    contents: `
+import MainApp from "./Main.svelte";
+export let a = 1\n
+
+const app = new MainApp({
+  target: document.body,
+})
+
+modules.export = app
+`,
+    isEntry: true,
+  },
+  {
+    name: "Main.svelte",
+    contents: `
+<script>
+</script>
+<div>hello world</div>
+`,
+    isEntry: false,
+  },
 ]);
 export const buildOptions = writable<BuildOptions>({
   bundle: true,
-  format: "esm",
-  splitting: true,
+  format: "iife",
+  globalName: "SigmaInteractive",
+  target: ["es2016", "chrome53", "firefox57", "safari11"],
+  plugins: [
+    pluginNodePolyfill(),
+    // esbuildSvelte({
+    //   // preprocess: sveltePreprocess(),
+    //   // overlay,
+    // }),
+  ],
 });
 
 export interface Outputs {
@@ -24,11 +57,11 @@ export interface Outputs {
   warnings?: Message[];
 }
 
-function normalizeName(path: string) {
+export function normalizeName(path: string) {
   return "/" + path.replace(/^[.\/]*/g, "");
 }
 
-function stripExt(path: string) {
+export function stripExt(path: string) {
   const i = path.lastIndexOf(".");
   return i !== -1 ? path.slice(0, i) : path;
 }
@@ -41,6 +74,13 @@ function repl($modules: Module[]): Plugin {
         const absPath = normalizeName(args.path);
 
         let mod = $modules.find((e) => normalizeName(e.name) === absPath);
+        const isSvelte = mod?.name.endsWith(".svelte");
+        if (isSvelte) {
+          if (mod) {
+            const path = normalizeName(mod.name);
+            return { path: path, pluginData: mod, namespace: "svelte" };
+          }
+        }
         if (mod) return { path: normalizeName(mod.name), pluginData: mod };
 
         mod = $modules.find((e) => stripExt(normalizeName(e.name)) === stripExt(absPath));
@@ -51,6 +91,7 @@ function repl($modules: Module[]): Plugin {
 
       onLoad({ filter: /.*/ }, (args) => {
         const mod: Module | undefined = args.pluginData;
+        console.log("[LOG] ~ file: build.ts ~ line 80 ~ mod", mod);
         const loader = stripExt(args.path) === args.path ? "js" : "default";
         if (mod) return { contents: mod.contents, loader };
       });
@@ -63,11 +104,13 @@ export const outputs: Readable<Outputs> = derived(
   ([$esbuild, $modules, $buildOptions], set) => {
     if (!$esbuild) return;
 
+    const result = compile($modules[1].contents, {});
+
     const entryPoints = $modules.filter((e) => e.isEntry).map((e) => e.name);
     if (entryPoints.length === 0) return set({});
 
     const buildOptions = { entryPoints, ...$buildOptions };
-    (buildOptions.plugins ||= []).unshift(repl($modules));
+    (buildOptions.plugins ||= []).unshift(esbuildSvelte({}));
     buildOptions.outdir = "/";
     buildOptions.write = false;
     buildOptions.allowOverwrite = true;

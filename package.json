@@ -15,7 +15,8 @@
     "p-retry": "^5.0.0",
     "sanitize.css": "^13.0.0",
     "selector-observer": "^2.1.6",
-    "svelte": "^3.46.2"
+    "svelte": "^3.46.3",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "@hyrious/esbuild-dev": "^0.7.2",
@@ -27,8 +28,8 @@
     "@tsconfig/svelte": "^3.0.0",
     "@types/codemirror": "^5.60.5",
     "@types/node": "^17.0.10",
-    "esbuild": "^0.14.11",
-    "esbuild-wasm": "^0.14.11",
+    "esbuild": "^0.14.14",
+    "esbuild-wasm": "^0.14.14",
     "fast-glob": "^3.2.11",
     "highlight.js": "^11.4.0",
     "prettier": "^2.5.1",
