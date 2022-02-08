@@ -1,7 +1,7 @@
 import { isMobile } from "../helpers";
 import "./esbuild";
-import "./sw";
-import "./theme";
+// import "./sw";
+// import "./theme";
 
 if (isMobile) {
   import("./editor");

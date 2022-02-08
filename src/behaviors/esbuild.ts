@@ -30,6 +30,7 @@ async function load() {
     return;
   }
 
+  // Dev
   if (import.meta.env.DEV) {
     $status.set("Fetching esbuild @ " + version);
     ({ default: module } = await import("esbuild-wasm"));
@@ -43,6 +44,7 @@ async function load() {
     return;
   }
 
+  // Production
   for (let i = 0; i < prefixes.length; ++i) {
     try {
       const jsURL = jsUrl(i, version);

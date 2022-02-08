@@ -7,6 +7,7 @@ self.oninstall = self.skipWaiting;
 self.onactivate = (ev) => ev.waitUntil(self.clients.claim());
 self.onfetch = (ev) => {
   const url = ev.request.url;
+  console.log("[LOG] ~ file: sw.ts ~ line 10 ~ url", url);
   if (url.endsWith("esbuild.wasm") && !url.includes("latest")) {
     ev.respondWith(
       caches.open("esbuild-repl:v1").then(async (cache) => {
