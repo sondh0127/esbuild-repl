@@ -16,7 +16,8 @@
     "sanitize.css": "^13.0.0",
     "selector-observer": "^2.1.6",
     "svelte": "^3.46.2",
-    "url": "^0.11.0"
+    "url": "^0.11.0",
+    "worker-timers": "^7.0.44"
   },
   "devDependencies": {
     "@hyrious/esbuild-dev": "^0.7.2",
